@@ -1,14 +1,17 @@
-from forms import get_players
-from game import first_play, pass_turn, play_piece, play_turn
+from game import first_play, pass_turn, play_piece, play_turn, opponent_play
 from shuffling import all_domino_pieces, generate_hands, shuffle_pieces
 
+def username():
+    player_main = input("Enter your nickname: ")
+    bot1 = "bot1"
+    return player_main, bot1
 
 def find_opening(players, hands_players):
-    """Find the holder of the highest double to start the game."""
+    # Find the holder of the highest double to start the game.
     six_six = {
         player: hand
         for player, hand in zip(players, hands_players)
-        if (6, 6) in hand
+            if (6, 6) in hand
     }
     starter = first_play(six_six)
     if starter is not None:
@@ -26,7 +29,8 @@ def find_opening(players, hands_players):
 
 
 def play_game():
-    players = get_players()
+    player_main, bot1 = username()
+    players = [player_main, bot1]
     shuffled_pieces = shuffle_pieces(all_domino_pieces())
     hands_players = generate_hands(shuffled_pieces)
     table = []
@@ -43,15 +47,15 @@ def play_game():
         current_player = pass_turn(starter, players)
         print(f"{starter} opened with {opening_piece}.")
 
-    for player, hand in zip(players, hands_players):
-        print(f"{player}: {hand}")
-
     consecutive_passes = 0
 
     while True:
         player_index = players.index(current_player)
         hand = hands_players[player_index]
-        played = play_turn(current_player, hand, table)
+        if current_player == bot1:
+            played = opponent_play(hand, table)
+        else:
+            played = play_turn(current_player, hand, table)
 
         if played:
             consecutive_passes = 0

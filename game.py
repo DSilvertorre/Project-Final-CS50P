@@ -1,5 +1,5 @@
 import ast
-
+import random
 
 def first_play(six_six):
     for player, hand in six_six.items():
@@ -79,22 +79,25 @@ def _read_piece(value):
     return None
 
 
-def play_turn(player, hand, table):
+def play_turn(players, hand, table):
     legal_pieces = [piece for piece in hand if table_is_valid(piece, table)]
-    print(f"\n{player}'s turn")
-    print(f"Your hand: {hand}")
-    print(f"Table: {table}")
+    if players != "bot1":
+        print(f"\n{players}'s turn")
+        print(f"Your hand: {hand}")
+        print(f"Table: {table}")
+
 
     if not legal_pieces:
-        print(f"{player} has no playable piece and must pass.")
+        print(f"{players} has no playable piece and must pass.")
         return False
 
-    print(f"Playable pieces: {legal_pieces}")
+    if players != "bot1":
+        print(f"Playable pieces: {legal_pieces}")
 
     while True:
         choice = input("Choose a piece like (2, 5), or type 'pass': ").strip()
         if choice.lower() in {"pass", "p"}:
-            print(f"{player} passed.")
+            print(f"{players} passed.")
             return False
 
         piece = _read_piece(choice)
@@ -125,7 +128,7 @@ def play_turn(player, hand, table):
             side = None
 
         if play_piece(hand, piece, side, table):
-            print(f"{player} played {piece} on the {side or 'table'}.")
+            print(f"{players} played {piece} on the {side or 'table'}.")
             print(f"Table is now: {table}")
             return True
 
@@ -142,3 +145,21 @@ def pass_turn(current_player, players):
     current_index = players.index(current_player)
     next_index = (current_index + 1) % len(players)
     return players[next_index]
+
+
+def opponent_play(hand, table):
+    legal_pieces = [piece for piece in hand if table_is_valid(piece, table)]
+    if not legal_pieces:
+        print("bot1 has no playable piece and must pass.")
+        return False
+
+    piece = random.choice(legal_pieces)
+    sides = _available_sides(piece, table)
+    side = random.choice(sides) if sides else None
+
+    if not play_piece(hand, piece, side, table):
+        raise RuntimeError(f"bot1 could not play its selected piece: {piece}")
+
+    print(f"bot1 played {piece} on the {side or 'table'}.")
+    print(f"Table is now: {table}")
+    return True
