@@ -13,11 +13,13 @@ def shuffle_pieces(all_combinations):
     return new_round
 
 # Gera as mãos de cada jogador
-def generate_hands(shuffled_pieces):
+def generate_hands(shuffled_pieces, number_of_players=4):
     new_round_hands = []
-    for p in range(4):
-        hand = shuffled_pieces[p * 6:(p + 1) * 6]
+    for p in range(number_of_players):
+        hand = shuffled_pieces[p * 7:(p + 1) * 7]
         new_round_hands.append(hand)
     return new_round_hands
 
-
+def buyable_pieces(shuffled_pieces, hands_players):
+    dealt_pieces = {piece for hand in hands_players for piece in hand}
+    return [piece for piece in shuffled_pieces if piece not in dealt_pieces]

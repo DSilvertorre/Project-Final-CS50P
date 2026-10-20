@@ -79,26 +79,42 @@ def _read_piece(value):
     return None
 
 
-def play_turn(players, hand, table):
+def play_turn(players, hand, table, buyable_pile, opponent_name, opponent_hand):
     legal_pieces = [piece for piece in hand if table_is_valid(piece, table)]
     if players != "bot1":
+        # Traz as informações necessárias para o jogador tomar as decisões
         print(f"\n{players}'s turn")
         print(f"Your hand: {hand}")
         print(f"Table: {table}")
-
-
-    if not legal_pieces:
-        print(f"{players} has no playable piece and must pass.")
-        return False
+        print(f"{opponent_name} has {len(opponent_hand)} pieces")
+        
+        if not legal_pieces:
+            print(f"{players} has no playable piece and must buy")
 
     if players != "bot1":
         print(f"Playable pieces: {legal_pieces}")
 
     while True:
-        choice = input("Choose a piece like (2, 5), or type 'pass': ").strip()
-        if choice.lower() in {"pass", "p"}:
-            print(f"{players} passed.")
-            return False
+        choice = input("Choose a piece like (2, 5) or buy: ").strip()
+        if choice.lower() == "buy":
+            if legal_pieces:
+                print("You have playable pieces and cannot buy.")
+                continue
+        if choice.lower() == "buy":
+            if not legal_pieces:
+                if not buyable_pile:
+                    print("There are no pieces left to buy.")
+                    return False
+            piece = buyable_pile.pop()
+            hand.append(piece)
+            print(f"{players} bought {piece}.")
+            print(f"Your hand: {hand}")
+            legal_pieces = [piece for piece in hand if table_is_valid(piece, table)]
+            if legal_pieces:
+                print(f"Playable pieces: {legal_pieces}")
+            else:
+                print("The bought piece is not playable.")
+            continue
 
         piece = _read_piece(choice)
         if piece is None:
@@ -134,7 +150,6 @@ def play_turn(players, hand, table):
 
         print("That move could not be made. Choose another piece or pass.")
 
-
 def pass_turn(current_player, players):
     """Return the next player's name, wrapping from the last player to the first."""
     if not players:
@@ -152,7 +167,6 @@ def opponent_play(hand, table):
     if not legal_pieces:
         print("bot1 has no playable piece and must pass.")
         return False
-
     piece = random.choice(legal_pieces)
     sides = _available_sides(piece, table)
     side = random.choice(sides) if sides else None
@@ -163,3 +177,14 @@ def opponent_play(hand, table):
     print(f"bot1 played {piece} on the {side or 'table'}.")
     print(f"Table is now: {table}")
     return True
+
+def sum_hands(hand):
+    """Return each player's hand total, or a single hand's total."""
+    if isinstance(hand, dict):
+        scores = {player: sum(sum(piece) for piece in pieces) for player, pieces in hand.items()}
+        if scores:
+            lowest_score = min(scores.values())
+            lowest_players = [player for player, score in scores.items() if score == lowest_score]
+            print(f"Jogador(es) com a menor pontuação: {', '.join(lowest_players)} ({lowest_score} pontos)")
+        return scores
+    return sum(sum(piece) for piece in hand)

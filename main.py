@@ -1,5 +1,5 @@
-from game import first_play, pass_turn, play_piece, play_turn, opponent_play
-from shuffling import all_domino_pieces, generate_hands, shuffle_pieces
+from game import first_play, pass_turn, play_piece, play_turn, opponent_play, sum_hands
+from shuffling import all_domino_pieces, buyable_pieces, generate_hands, shuffle_pieces
 
 def username():
     player_main = input("Enter your nickname: ")
@@ -32,7 +32,8 @@ def play_game():
     player_main, bot1 = username()
     players = [player_main, bot1]
     shuffled_pieces = shuffle_pieces(all_domino_pieces())
-    hands_players = generate_hands(shuffled_pieces)
+    hands_players = generate_hands(shuffled_pieces, len(players))
+    buyable_pile = buyable_pieces(shuffled_pieces, hands_players)
     table = []
 
     print("LET'S PLAY DOMYTHON!")
@@ -55,7 +56,13 @@ def play_game():
         if current_player == bot1:
             played = opponent_play(hand, table)
         else:
-            played = play_turn(current_player, hand, table)
+            opponent_index = 1- player_index
+            opponent_name = players[1]
+            opponent_hand = hands_players[opponent_index]
+
+            played = play_turn(
+            current_player, hand, table, buyable_pile,
+            opponent_name, opponent_hand)
 
         if played:
             consecutive_passes = 0
@@ -66,6 +73,8 @@ def play_game():
             consecutive_passes += 1
             if consecutive_passes == len(players):
                 print("Everyone passed. The game is blocked.")
+                print("The winner is who has fewer points")
+                sum_hands(hand)
                 return
 
         current_player = pass_turn(current_player, players)
